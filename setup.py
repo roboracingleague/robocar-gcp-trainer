@@ -1,14 +1,23 @@
-from setuptools import setup, find_packages
-import os
+from setuptools import find_packages
+from setuptools import setup
 
-NAME = 'roborace'
-VERSION = '1.0'
-REQUIRED_PACKAGES = []
-
+REQUIRED_PACKAGES = [
+        'opencv-python',
+        'matplotlib',
+        'kivy',
+        'protobuf==3.20.3',
+        'pandas',
+        'pyyaml',
+        'plotly',
+        'imgaug',
+        'donkeycar @ git+https://github.com/btrinite/donkeycar-rrl.git@grumpy#egg=donkeycar',
+    ]
 
 setup(
-    name=NAME,
-    version=VERSION,
+    name='steering-trainer',
+    version='0.1',
+    install_requires=REQUIRED_PACKAGES,
     packages=find_packages(),
-    install_requires=REQUIRED_PACKAGES,    
-    )
+    include_package_data=True,
+    description='My training application package.'
+)
