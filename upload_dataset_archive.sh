@@ -8,7 +8,7 @@ fi
 dest="gs://${STEERING_BUCKET_NAME}/training/"
 if [[ -z "$1" ]]; then
     echo "usage : $0 <archive>"
-    echo "example : $0 data-2023_01_25.tar.gz"
+    echo "example : $0 data-2023_01_25.tgz"
     exit
 fi
 gsutil cp $1  $dest
