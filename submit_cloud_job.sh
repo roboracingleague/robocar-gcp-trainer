@@ -1,4 +1,10 @@
-#!/bin/sh
+#!/bin/bash
+
+if [[ -z "$1" ]]; then
+    echo "usage : $0 <archive>"
+    echo "example : $0 data-2023_01_25.tar.gz"
+    exit
+fi
 
 jobname="steering$(date +"%Y%m%d%H%M")"
 

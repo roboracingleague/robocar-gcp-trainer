@@ -10,6 +10,7 @@ REQUIRED_PACKAGES = [
         'pyyaml',
         'plotly',
         'imgaug',
+        'tf2onnx',
 #        'donkeycar @ git+https://github.com/btrinite/donkeycar-rrl.git@grumpy#egg=donkeycar',
         'donkeycar @ git+https://github.com/roboracingleague/donkeycar.git@main#egg=donkeycar',
     ]
