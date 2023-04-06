@@ -7,18 +7,24 @@ Beyond using gloud to train model, idea here is to rely on donkeycar source code
 # Requirements (from https://cloud.google.com/ai-platform/docs/getting-started-keras):
 - have a GCP account 
 - install gcloud CLI
+- pip install --upgrade google-api-python-client
+- pip install --upgrade google-cloud-storage
 - create a project with billing activated
-- create service account, key, and download it (json file) #keep care of this file, do not expose it !
-- create a bucket (used for storage of dataset, job temporary files and model created)
+- (optionnal) create service account, key, and download it (json file) #keep care of this file, do not expose it !
+- create a bucket (used for storage of dataset, job temporary files and model created),
+- create two directories in your bucket : training and models (training is used to store datasets, models is where trained model are stored)
 - make sure following env variable are defined :
-    - GOOGLE_APPLICATION_CREDENTIALS
-    - STEERING_BUCKET_NAME
-    - REGION
+    - (optionnal is service account is used) GOOGLE_APPLICATION_CREDENTIALS, or (if service account not used) follow https://cloud.google.com/docs/authentication/provide-credentials-adc?hl=fr#how-to
+    - STEERING_BUCKET_NAME, for example : irn-71028-dvc-lab-robocar-pace92
+    - REGION, for example : europe-west1
+    - JOB_DIR, for example : gs://$STEERING_BUCKET_NAME/job
 
 # usage :
 
 ## create dataset archive
 use the ```make_steering_archive.sh``` script, from your 'car' directory
+
+you must call this script from your "car" directory. The script will automatically include config.py and myconfig.py to your dataset, so that training will be based on it.
 
 usage : 
 ```
@@ -34,6 +40,8 @@ You can specify another directory or subdirectory like :
 
 ## upload archive to your GCS bucket
 use the ```upload_steering_archive.sh``` script
+
+The script will upload archive to subdirectory training
 
 usage : 
 ```
@@ -55,5 +63,5 @@ Archive is the file you got using ```make_steering_archive.sh``` script
 # What you need to look at :
 This code is somekind of wrapper arround donkeycar to allow to use google training platform to train donkeycar model, using donkeycar sourcecode as a single source of truth. 
 In setup.py, you will found 2 kind of dependencies :
-- dependency to a donkeycar repo, for a given branch/tag
+- dependency to a donkeycar repo to use for training, for a given branch/tag
 - additional dependencies, comming from [pc] target extra requirements, but not deployed by ai-platform  

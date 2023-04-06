@@ -5,19 +5,14 @@ import tarfile
 from google.cloud import storage
 
 DATA_DIR = tempfile.TemporaryDirectory(suffix=None, prefix='steering_training')
-BUCKET_NAME = "steering-model"
 
-def get_archive (url):
+def get_archive (bucket_name, url):
 
-    print(
-        "Downloading storage object {}.".format(
-            url
-        )
-    )
+    print(f"Downloading storage object training/{url} from bucket {bucket_name}")
 
     storage_client = storage.Client()
 
-    bucket = storage_client.bucket(BUCKET_NAME)
+    bucket = storage_client.bucket(bucket_name)
 
     # Construct a client side representation of a blob.
     # Note `Bucket.blob` differs from `Bucket.get_blob` as it doesn't retrieve
@@ -29,7 +24,7 @@ def get_archive (url):
 
     print(
         "Downloaded storage object from bucket {} to local file {}.".format(
-            BUCKET_NAME, DATA_DIR.name
+            bucket, DATA_DIR.name
         )
     )
 
@@ -40,11 +35,11 @@ def get_archive (url):
 
     return DATA_DIR.name
 
-def save_model (filepath, src_filename, dst_filename):
+def save_model (bucket, filepath, src_filename, dst_filename):
 
     storage_client = storage.Client()
 
-    bucket = storage_client.bucket(BUCKET_NAME)
+    bucket = storage_client.bucket(bucket)
 
     gcs_object = bucket.blob(os.path.join('models',dst_filename))
     gcs_object.upload_from_filename(os.path.join(filepath,src_filename))

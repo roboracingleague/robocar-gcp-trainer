@@ -15,6 +15,6 @@ fi
 gcloud ai-platform local train \
   --package-path trainer \
   --module-name trainer.task \
-  --job-dir $JOB_DIR -- --archive $1
+  --job-dir $JOB_DIR -- --bucket ${STEERING_BUCKET_NAME} --archive $1
 
 #  --packages ~/projects/rrl_2023/donkeycar/donkeycar.tar.gz \

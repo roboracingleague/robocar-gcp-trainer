@@ -18,6 +18,21 @@ else
     base_filename="$2"
 fi
 
+if [ ! -f ./config.py ]
+then
+	echo "Could not find ./config.py !"
+    echo "You must call this script from a 'mycar' directory"
+    exit
+fi
+
+if [ ! -f ./myconfig.py ]
+then
+	echo "Could not find ./myconfig.py !"
+    echo "You must call this script from a 'mycar' directory"
+    exit
+fi
+
+
 echo "Archiving ${TUB_DIR} to $base_filename.tgz"
 tar -chf $base_filename.tar -C ./${TUB_DIR} . 
 tar -uhf $base_filename.tar myconfig.py config.py

@@ -49,6 +49,11 @@ def get_args():
         required=True,
         help='config file')
     parser.add_argument(
+        '--bucket',
+        type=str,
+        required=True,
+        help='bucket name to use')
+    parser.add_argument(
         '--verbosity',
         choices=['DEBUG', 'ERROR', 'FATAL', 'INFO', 'WARN'],
         default='INFO')
@@ -63,7 +68,7 @@ class DonkeyTrainer:
         self.tmpdir = "."
 
     def get_archive(self):
-        self.tmpdir = util.get_archive(args.archive)
+        self.tmpdir = util.get_archive(bucket_name=args.bucket, url=args.archive)
 
     def get_config(self):
         self.cfg = dk.load_config(config_path=os.path.join(self.tmpdir, "config.py"))
@@ -78,12 +83,12 @@ class DonkeyTrainer:
                         transfer=None,
                         comment="")
 
-    def save_model(self, ext, output_name):
+    def save_model(self, ext, bucket, output_name):
         database = PilotDatabase(self.cfg)
         filename = f"{database.entries[0]['Name']}.{ext}"
         filepath=os.path.join(self.tmpdir, self.cfg.MODELS_PATH)
-        util.save_model(filepath, src_filename=filename, dst_filename=output_name)
-        print(f"Model {filepath}/{filename} exported to bucket {util.BUCKET_NAME} as {output_name}")
+        util.save_model(bucket, filepath, src_filename=filename, dst_filename=output_name)
+        print(f"Model {filepath}/{filename} exported to bucket {bucket} as {output_name}")
 
 if __name__ == '__main__':
     args = get_args()
@@ -99,14 +104,12 @@ if __name__ == '__main__':
     if trainer.cfg.CREATE_TF_LITE:
         tflite_modelname = f"pilot-{Path(args.archive).stem}.tflite"
         print(f"Exporting tflite model")
-        trainer.save_tflite_model(output_name=tflite_modelname)
-        trainer.save_model (ext='tflite', output_name=tflite_modelname)
+        trainer.save_model (ext='tflite', bucket=args.bucket, output_name=tflite_modelname)
     if trainer.cfg.CREATE_ONNX_MODEL:
         onnx_modelname = f"pilot-{Path(args.archive).stem}.onnx"
         print(f"Exporting onnx model")
-        trainer.save_onnx_model(output_name=onnx_modelname)
-        trainer.save_model (ext='onnx', output_name=onnx_modelname)
+        trainer.save_model (ext='onnx', bucket=args.bucket, output_name=onnx_modelname)
 
     h5_modelname = f"pilot-{Path(args.archive).stem}.h5"
     print(f"Exporting h5 model")
-    trainer.save_h5_model(ext='h5', output_name=h5_modelname)
+    trainer.save_model(ext='h5', bucket=args.bucket, output_name=h5_modelname)
