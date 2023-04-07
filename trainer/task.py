@@ -77,6 +77,8 @@ class DonkeyTrainer:
     def train_and_evaluate(self, args):
 
         self.tub_path  = self.tmpdir
+        modelfilepath=os.path.join(self.tmpdir, self.cfg.MODELS_PATH)
+        os.makedirs(modelfilepath, exist_ok=True)
 
         history = train(self.cfg, tub_paths=self.tub_path,
                         model_type=self.cfg.DEFAULT_MODEL_TYPE,
@@ -99,8 +101,15 @@ if __name__ == '__main__':
     trainer.get_archive()
     print(f"Getting config files from archive")
     trainer.get_config()
+    print (f"TF FLite creation : {trainer.cfg.CREATE_TF_LITE}")
+    print (f"ONNX creation : {trainer.cfg.CREATE_ONNX_MODEL}")
     print(f"Training model")
     trainer.train_and_evaluate (args)
+
+    h5_modelname = f"pilot-{Path(args.archive).stem}.h5"
+    print(f"Exporting h5 model")
+    trainer.save_model(ext='h5', output_name=h5_modelname)
+
     if trainer.cfg.CREATE_TF_LITE:
         tflite_modelname = f"pilot-{Path(args.archive).stem}.tflite"
         print(f"Exporting tflite model")
@@ -109,7 +118,3 @@ if __name__ == '__main__':
         onnx_modelname = f"pilot-{Path(args.archive).stem}.onnx"
         print(f"Exporting onnx model")
         trainer.save_model (ext='onnx', bucket=args.bucket, output_name=onnx_modelname)
-
-    h5_modelname = f"pilot-{Path(args.archive).stem}.h5"
-    print(f"Exporting h5 model")
-    trainer.save_model(ext='h5', bucket=args.bucket, output_name=h5_modelname)
