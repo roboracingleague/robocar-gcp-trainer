@@ -108,7 +108,7 @@ if __name__ == '__main__':
 
     h5_modelname = f"pilot-{Path(args.archive).stem}.h5"
     print(f"Exporting h5 model")
-    trainer.save_model(ext='h5', output_name=h5_modelname)
+    trainer.save_model(ext='h5', bucket=args.bucket, output_name=h5_modelname)
 
     if trainer.cfg.CREATE_TF_LITE:
         tflite_modelname = f"pilot-{Path(args.archive).stem}.tflite"
