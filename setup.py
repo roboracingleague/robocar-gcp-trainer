@@ -11,7 +11,8 @@ REQUIRED_PACKAGES = [
         'plotly',
         'imgaug',
         'tf2onnx',
-#        'donkeycar @ git+https://github.com/btrinite/donkeycar-rrl.git@grumpy#egg=donkeycar',
+        'moviepy',
+        'keras-vis @ git+https://github.com/autorope/keras-vis.git@master#egg=keras-viz',
         'donkeycar @ git+https://github.com/roboracingleague/donkeycar.git@main#egg=donkeycar',
     ]
 

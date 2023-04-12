@@ -57,8 +57,19 @@ Archive is the file you got using ```make_steering_archive.sh``` script
 
 ## start training using google ai-platform :
 ```
-./submit_cloud_job <archive>
+./submit_cloud_train <archive>
 ``` 
+
+## start local salient makemovie (usefull at least to check that everything is fine) :
+```
+./local_makemovie.sh <archive> <model.h5>
+``` 
+
+## start training using google ai-platform :
+```
+./submit_cloud_makemovie <archive> <model.h5>
+``` 
+
 
 # What you need to look at :
 This code is somekind of wrapper arround donkeycar to allow to use google training platform to train donkeycar model, using donkeycar sourcecode as a single source of truth. 

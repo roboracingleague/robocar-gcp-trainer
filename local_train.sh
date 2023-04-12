@@ -13,8 +13,8 @@ if [[ -z "$1" ]]; then
 fi
 
 gcloud ai-platform local train \
-  --package-path trainer \
-  --module-name trainer.task \
+  --package-path task \
+  --module-name task.train \
   --job-dir $JOB_DIR -- --bucket ${STEERING_BUCKET_NAME} --archive $1
 
 #  --packages ~/projects/rrl_2023/donkeycar/donkeycar.tar.gz \

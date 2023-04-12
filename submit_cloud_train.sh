@@ -9,8 +9,8 @@ fi
 jobname="steering$(date +"%Y%m%d%H%M")"
 
 gcloud ai-platform jobs submit training "$jobname" \
-  --package-path trainer \
-  --module-name trainer.task \
+  --package-path task \
+  --module-name task.train \
   --scale-tier BASIC_GPU \
   --region $REGION --python-version 3.7 --runtime-version 2.9 --job-dir $JOB_DIR --stream-logs -- --bucket $STEERING_BUCKET_NAME --archive $1
 
