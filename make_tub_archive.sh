@@ -35,6 +35,7 @@ fi
 
 echo "Archiving ${TUB_DIR} to $base_filename.tgz"
 tar -chf $base_filename.tar -C ./${TUB_DIR} . 
+touch myconfig.py config.py
 tar -uhf $base_filename.tar myconfig.py config.py
 gzip $base_filename.tar
 mv $base_filename.tar.gz $base_filename.tgz 
