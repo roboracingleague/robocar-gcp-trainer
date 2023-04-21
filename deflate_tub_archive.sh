@@ -25,5 +25,15 @@ mkdir ${TUB_DIR}
 echo "Deflating $filename to ${TUB_DIR}"
 tar -xzf ${filename} -C ${TUB_DIR}
 
+if [ ! -f ${TUB_DIR}/myconfig.py ]
+    echo "Restoring myconfig.py from archive"
+    cp ${TUB_DIR}/myconfig.py .
+fi
+
+if [ ! -f ${TUB_DIR}/config.py ]
+    echo "Restoring config.py from archive"
+    cp ${TUB_DIR}/config.py .
+fi
+
 echo "File ${filename} deflated"
 
