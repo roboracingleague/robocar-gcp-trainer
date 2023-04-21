@@ -25,13 +25,13 @@ mkdir ${TUB_DIR}
 echo "Deflating $filename to ${TUB_DIR}"
 tar -xzf ${filename} -C ${TUB_DIR}
 
-if [ ! -f ${TUB_DIR}/myconfig.py ]
+if [ -f ${TUB_DIR}/myconfig.py ]
 then
     echo "Restoring myconfig.py from archive"
     cp ${TUB_DIR}/myconfig.py .
 fi
 
-if [ ! -f ${TUB_DIR}/config.py ]
+if [ -f ${TUB_DIR}/config.py ]
 then
     echo "Restoring config.py from archive"
     cp ${TUB_DIR}/config.py .
