@@ -13,7 +13,7 @@ if [[ -z "$2" ]]; then
 fi
 
 
-jobname="steering$(date +"%Y%m%d%H%M")"
+jobname="movie$(date +"%Y%m%d%H%M")"
 
 outfile="$(basename $2 .h5).mp4"
 
