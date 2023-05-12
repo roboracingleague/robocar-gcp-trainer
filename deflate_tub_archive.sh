@@ -1,40 +1,65 @@
 #!/bin/bash
 
-# this script package all data found in given tub directory and complete it with donkeycar config files
+Help()
+{
+   # Display Help
+   echo "Deflate archive to tub directory and restore config in current directory."
+   echo "Warning : tub directory will be cleaned before"
+   echo
+   echo "Syntax: $0 [-a <archive name>] [-t <tub directory>] [-h]"
+   echo "options:"
+   echo "t     specify tub directory where to deflate archive (default to 'data')."
+   echo "a     specify source archive filename (including extension, default to 'wip.tgz')."
+   echo "h     Print this Help."
+   echo
+}
 
-if [[ -z "$1" ]]; then
-    echo "Missing archive name !"
-    echo "Usage : $0 <archive name>  <tub directory>"
-    exit
-else
-    filename=$1
+tub=""
+filename=""
+
+while getopts ":ht:a:" option; do
+   case $option in
+      h) # display Help
+         Help
+         exit;;
+      t) # Enter a name
+         tub=$OPTARG;;
+      a) # Enter a name
+         archive=$OPTARG;;
+     \?) # Invalid option
+         echo "Error: Invalid option"
+         Help
+         exit;;
+   esac
+done
+
+if [[ -z "$tub" ]]; then
+    tub="data"
+    echo "Using default tub directory '$tub'"
 fi
 
-if [[ -z "$2" ]]; then
-    echo "Missing explicit tub directory !"
-    echo "Usage : $0  <archive name> <tub directory> "
-    exit
-else
-    TUB_DIR=$2
+if [[ -z "$filename" ]]; then
+    filename="wip.tgz"
+    echo "using default archive name $archive"
 fi
 
-echo "Cleaning ${TUB_DIR}"
-rm -r -f ${TUB_DIR}
-mkdir ${TUB_DIR}
+echo "Cleaning ${tub}"
+rm -r -f ${tub}
+mkdir ${tub}
 
-echo "Deflating $filename to ${TUB_DIR}"
-tar -xzf ${filename} -C ${TUB_DIR}
+echo "Deflating $filename to ${tub}"
+tar -xzf ${filename} -C ${tub}
 
-if [ -f ${TUB_DIR}/myconfig.py ]
+if [ -f ${tub}/myconfig.py ]
 then
     echo "Restoring myconfig.py from archive"
-    cp ${TUB_DIR}/myconfig.py .
+    cp ${tub}/myconfig.py .
 fi
 
-if [ -f ${TUB_DIR}/config.py ]
+if [ -f ${tub}/config.py ]
 then
     echo "Restoring config.py from archive"
-    cp ${TUB_DIR}/config.py .
+    cp ${tub}/config.py .
 fi
 
 echo "File ${filename} deflated"

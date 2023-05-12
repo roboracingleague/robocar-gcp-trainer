@@ -1,21 +1,50 @@
 #!/bin/bash
 
-# this script package all data found in given tub directory and complete it with donkeycar config files
+Help()
+{
+   # Display Help
+   echo "Make archive of tub directory, including current config files."
+   echo
+   echo "Syntax: $0 [-t <tub directory>] [-a <archive name>] [-h]"
+   echo "options:"
+   echo "t     specify tub directory to archive (default to 'data')."
+   echo "a     specify target archive basename (without extension, default to 'wip')."
+   echo "h     Print this Help."
+   echo
+}
 
-if [[ -z "$1" ]]; then
-    echo "Missing explicit tub directory !"
-    echo "Usage : $0  <tub directory> <archive name>"
-    exit
-else
-    TUB_DIR=$1
+tub=""
+archive=""
+
+while getopts ":ht:a:" option; do
+   case $option in
+      h) # display Help
+         Help
+         exit;;
+      t) # Enter a name
+         tub=$OPTARG;;
+      a) # Enter a name
+         archive=$OPTARG;;
+     \?) # Invalid option
+         echo "Error: Invalid option"
+         Help
+         exit;;
+   esac
+done
+
+if [[ -z "$tub" ]]; then
+    tub="data"
+    echo "Using default tub directory '$tub'"
 fi
 
-if [[ -z "$2" ]]; then
-    echo "Missing archive name !"
-    echo "Usage : $0  <tub directory> <archive name>"
+if [[ ! -d "$tub" ]]; then
+    echo "tub directory '$tub' not found"
     exit
-else
-    base_filename="$2"
+fi
+
+if [[ -z "$archive" ]]; then
+    archive="wip"
+    echo "using default archive basename $archive"
 fi
 
 if [ ! -f ./config.py ]
@@ -32,13 +61,11 @@ then
     exit
 fi
 
-
-echo "Archiving ${TUB_DIR} to $base_filename.tgz"
-tar -chf $base_filename.tar -C ./${TUB_DIR} . 
+echo "Archiving ${tub} to $archive.tgz"
+tar -chf $archive.tar -C ./${tub} . 
 touch myconfig.py config.py
-tar -uhf $base_filename.tar myconfig.py config.py
-gzip $base_filename.tar
-mv $base_filename.tar.gz $base_filename.tgz 
+tar -uhf $archive.tar myconfig.py config.py
+gzip $archive.tar
+mv $archive.tar.gz $archive.tgz 
 
-echo "File ${base_filename}.tgz created"
-
+echo "File ${archive}.tgz created"
