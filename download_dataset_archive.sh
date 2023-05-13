@@ -39,7 +39,7 @@ if [[ -z "${STEERING_BUCKET_NAME}" ]]; then
     exit
 fi
 
-src="gs://${STEERING_BUCKET_NAME}/training/"
+src="gs://${STEERING_BUCKET_NAME}/training"
 
 gsutil cp $src/$archive .
 

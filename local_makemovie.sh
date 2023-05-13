@@ -37,7 +37,7 @@ if [[ -z "$model" ]]; then
     model="pilot-wip.h5"
     echo "Using default model filename '$tub'"
 fi
-filename
+
 if [[ -z "$archive" ]]; then
     archive="wip.tgz"
     echo "using default archive name $archive"

@@ -34,6 +34,11 @@ if [[ -z "$archive" ]]; then
     echo "using default archive name $archive"
 fi
 
+if [[ ! -f "$archive" ]]; then
+    echo "Archive file $archive not found"
+    exit
+fi
+
 # This script upload a given archive to GCS
 if [[ -z "${STEERING_BUCKET_NAME}" ]]; then
     echo "Missing STEERING_BUCKET_NAME env variable"

@@ -15,12 +15,12 @@ Help()
 
 model=""
 
-while getopts ":ha:" option; do
+while getopts ":hm:" option; do
    case $option in
       h) # display Help
          Help
          exit;;
-      a) # Enter a name
+      m) # Enter a name
          model=$OPTARG;;
      \?) # Invalid option
          echo "Error: Invalid option"

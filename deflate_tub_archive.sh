@@ -25,7 +25,7 @@ while getopts ":ht:a:" option; do
       t) # Enter a name
          tub=$OPTARG;;
       a) # Enter a name
-         archive=$OPTARG;;
+         filename=$OPTARG;;
      \?) # Invalid option
          echo "Error: Invalid option"
          Help
@@ -40,7 +40,12 @@ fi
 
 if [[ -z "$filename" ]]; then
     filename="wip.tgz"
-    echo "using default archive name $archive"
+    echo "using default archive filename $filename"
+fi
+
+if [[ ! -f "$filename" ]]; then
+    echo "Archive file $filename not found"
+    exit
 fi
 
 echo "Cleaning ${tub}"
