@@ -1,14 +1,26 @@
-from setuptools import setup, find_packages
-import os
+from setuptools import find_packages
+from setuptools import setup
 
-NAME = 'roborace'
-VERSION = '1.0'
-REQUIRED_PACKAGES = []
-
+REQUIRED_PACKAGES = [
+        'opencv-python',
+        'matplotlib',
+        'kivy',
+        'protobuf==3.20.3',
+        'pandas',
+        'pyyaml',
+        'plotly',
+        'imgaug',
+        'tf2onnx',
+        'moviepy',
+        'keras-vis @ git+https://github.com/autorope/keras-vis.git@master#egg=keras-viz',
+        'donkeycar @ git+https://github.com/roboracingleague/donkeycar.git@main#egg=donkeycar',
+    ]
 
 setup(
-    name=NAME,
-    version=VERSION,
+    name='steering-trainer',
+    version='0.1',
+    install_requires=REQUIRED_PACKAGES,
     packages=find_packages(),
-    install_requires=REQUIRED_PACKAGES,    
-    )
+    include_package_data=True,
+    description='My training application package.'
+)

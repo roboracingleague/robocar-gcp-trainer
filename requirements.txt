@@ -1,5 +1,0 @@
-tensorflow-gpu==1.14.0
-numpy
-pillow 
-h5py
-opencv-python==3.3.0.9
