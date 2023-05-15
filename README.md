@@ -20,59 +20,86 @@ Beyond using gloud to train model, idea here is to rely on donkeycar source code
     - JOB_DIR, for example : gs://$STEERING_BUCKET_NAME/job
 
 # usage :
+## scripts
+All steps of training including dataset handling can be done through provided scripts.
+All scripts have a default functionnal behavior, to get help, invoaue script with ```-h```
+
+## links some script in your 'car' directory :
+```sh
+cd ~/mycar
+ln -s <robocar-gcp-trainer direcrory>/make_tub_archive.sh .
+ln -s <robocar-gcp-trainer direcrory>/deflate_tub_archive.sh .
+ln -s <robocar-gcp-trainer direcrory>/upload_tub_archive.sh .
+```
 
 ## create dataset archive
-use the ```make_steering_archive.sh``` script, from your 'car' directory
+use the ```make_tub_archive.sh``` script, from your 'car' directory
 
 you must call this script from your "car" directory. The script will automatically include config.py and myconfig.py to your dataset, so that training will be based on it.
 
 usage : 
 ```
-./make_steering_archive.sh <tub directory>
+./make_tub_archive.sh [-t <tub directory>] [-a <archive basename>] [-h]
 ```
 
 Default tub directory is ```data```.
+Default archive basename is ```wip```.
 
-You can specify another directory or subdirectory like :
+For example, to specify another tub directory or subdirectory :
 ```
-./make_steering_archive.sh data/steering_data
+./make_tub_archive.sh -t data/steering_data
 ```
 
 ## upload archive to your GCS bucket
-use the ```upload_steering_archive.sh``` script
+use the ```upload_tub_archive.sh``` script
 
 The script will upload archive to subdirectory training
 
 usage : 
 ```
-./make_steering_archive.sh <archive>
+./upload_tub_archive.sh [-a <archive name>]
 ```
 
-Archive is the file you got using ```make_steering_archive.sh``` script
+Default archive name is ```wip.tgz```.
 
 ## start local training (usefull at least to check that everything is fine) :
 ```
-./local_train.sh <archive>
+./local_train.sh [-a <archive name>]
 ``` 
+Default archive name is ```wip.tgz```.
 
 ## start training using google ai-platform :
 ```
-./submit_cloud_train <archive>
+./submit_cloud_train.sh [-a <archive name>]
 ``` 
+Default archive name is ```wip.tgz```.
 
 ## start local salient makemovie (usefull at least to check that everything is fine) :
 ```
-./local_makemovie.sh <archive> <model.h5>
+./local_makemovie.sh [-m <model.h5>] [-a <archive name>] 
 ``` 
+Default archive name is ```wip.tgz```.
+Default model name is ```pilot-wip.h5```.
 
 ## start training using google ai-platform :
-```
-./submit_cloud_makemovie <archive> <model.h5>
-``` 
 
+```
+./submit_cloud_makemovie [-m <model.h5>] [-a <archive name>]
+``` 
+Default archive name is ```wip.tgz```.
+Default model name is ```pilot-wip.h5```.
+
+## Download resulting models :
+
+```
+./download_models [-m <model basename>]
+``` 
+Default model name is ```pilot-wip```.
+
+It will download all available models matching basename (provided or default one), meaning that <basemodel>.h5, <basemodel>.tflite and <basemodel>.onnx will be downloaded if avaiable in the GCS bucket.
 
 # What you need to look at :
 This code is somekind of wrapper arround donkeycar to allow to use google training platform to train donkeycar model, using donkeycar sourcecode as a single source of truth. 
 In setup.py, you will found 2 kind of dependencies :
-- dependency to a donkeycar repo to use for training, for a given branch/tag
+- dependency to a donkeycar repo to use for training, for a given branch/tag : **Verify that git url and branch match your need**
 - additional dependencies, comming from [pc] target extra requirements, but not deployed by ai-platform  

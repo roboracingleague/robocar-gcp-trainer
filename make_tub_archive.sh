@@ -5,7 +5,7 @@ Help()
    # Display Help
    echo "Make archive of tub directory, including current config files."
    echo
-   echo "Syntax: $0 [-t <tub directory>] [-a <archive name>] [-h]"
+   echo "Syntax: $0 [-t <tub directory>] [-a <archive basename>] [-h]"
    echo "options:"
    echo "t     specify tub directory to archive (default to 'data')."
    echo "a     specify target archive basename (without extension, default to 'wip')."
