@@ -28,6 +28,21 @@ while getopts ":ha:" option; do
    esac
 done
 
+if [[ -z "$TRAINER_DIR" ]]; then
+    echo "Missing env variable TRAINER_DIR !"
+    exit
+fi
+
+if [[ -z "$JOB_DIR" ]]; then
+    echo "Missing env variable JOB_DIR !"
+    exit
+fi
+
+if [[ -z "$STEERING_BUCKET_NAME" ]]; then
+    echo "Missing env variable STEERING_BUCKET_NAME !"
+    exit
+fi
+
 if [[ -z "$archive" ]]; then
     archive="wip.tgz"
     echo "using default archive name $archive"
@@ -36,7 +51,7 @@ fi
 jobname="steering$(date +"%Y%m%d%H%M")"
 
 gcloud ai-platform jobs submit training "$jobname" \
-  --package-path task \
+  --package-path $TRAINER_DIR/task \
   --module-name task.train \
   --scale-tier BASIC_GPU \
   --region $REGION --python-version 3.7 --runtime-version 2.9 --job-dir $JOB_DIR --stream-logs -- --bucket $STEERING_BUCKET_NAME --archive $archive

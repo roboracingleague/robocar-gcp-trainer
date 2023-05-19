@@ -18,6 +18,7 @@ Beyond using gloud to train model, idea here is to rely on donkeycar source code
     - STEERING_BUCKET_NAME, for example : irn-71028-dvc-lab-robocar-pace92
     - REGION, for example : europe-west1
     - JOB_DIR, for example : gs://$STEERING_BUCKET_NAME/job
+    - TRAINER_DIR, should be set with absolute path to this project, used to invoke train from donkeycar car directory (or anywhere else))
 
 # usage :
 ## scripts

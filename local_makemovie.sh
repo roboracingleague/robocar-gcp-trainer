@@ -33,6 +33,21 @@ while getopts ":hm:a:" option; do
    esac
 done
 
+if [[ -z "$TRAINER_DIR" ]]; then
+    echo "Missing env variable TRAINER_DIR !"
+    exit
+fi
+
+if [[ -z "$JOB_DIR" ]]; then
+    echo "Missing env variable JOB_DIR !"
+    exit
+fi
+
+if [[ -z "$STEERING_BUCKET_NAME" ]]; then
+    echo "Missing env variable STEERING_BUCKET_NAME !"
+    exit
+fi
+
 if [[ -z "$model" ]]; then
     model="pilot-wip.h5"
     echo "Using default model filename '$tub'"
@@ -41,11 +56,6 @@ fi
 if [[ -z "$archive" ]]; then
     archive="wip.tgz"
     echo "using default archive name $archive"
-fi
-
-if [[ -z "${JOB_DIR}" ]]; then
-    echo "Missing JOB_DIR env variable"
-    exit
 fi
 
 outfile="$(basename $model .h5).mp4"
@@ -58,7 +68,7 @@ fi
 src="gs://${STEERING_BUCKET_NAME}/training/"
 
 gcloud ai-platform local train \
-  --package-path task \
+  --package-path $TRAINER_DIR/task \
   --module-name task.makemovie \
   --job-dir $JOB_DIR -- --out ${outfile} --bucket ${STEERING_BUCKET_NAME} --archive $archive --type linear --model $model --salient
 
