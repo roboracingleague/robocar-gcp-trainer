@@ -5,14 +5,15 @@ REQUIRED_PACKAGES = [
         'opencv-python',
         'matplotlib',
         'kivy',
-        'protobuf==3.20.3',
+        'protobuf==3.19.6',
         'pandas',
         'pyyaml',
         'plotly',
         'imgaug',
+        'onnx==1.12.0',
         'tf2onnx',
 #        'donkeycar @ git+https://github.com/btrinite/donkeycar-rrl.git@grumpy#egg=donkeycar',
-        'donkeycar @ git+https://github.com/roboracingleague/donkeycar.git@main#egg=donkeycar',
+        'donkeycar @ git+https://github.com/roboracingleague/donkeycar.git@obo-perf#egg=donkeycar',
     ]
 
 setup(
