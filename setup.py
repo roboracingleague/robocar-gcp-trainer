@@ -13,7 +13,7 @@ REQUIRED_PACKAGES = [
         'tf2onnx',
         'moviepy',
         'keras-vis @ git+https://github.com/autorope/keras-vis.git@master#egg=keras-viz',
-        'donkeycar @ git+https://github.com/roboracingleague/donkeycar.git@btr_sl#egg=donkeycar',
+        'donkeycar @ git+https://github.com/roboracingleague/donkeycar.git@main#egg=donkeycar',
     ]
 
 setup(
