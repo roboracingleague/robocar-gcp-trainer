@@ -3,22 +3,26 @@
 Help()
 {
    # Display Help
-   echo "Submit training task to GCP AI Platform."
+   echo "Submit makemovie task to GCP AI Platform."
    echo
-   echo "Syntax: $0 [-a <archive name>] [-h]"
+   echo "Syntax: $0 [-m <model.h5>] [-a <archive name>] [-h]"
    echo "options:"
-   echo "a     specify target archive name (including extension, default to 'wip.tgz')."
+   echo "m     model filename (expecting .h5)."
+   echo "a     archive filename to use (including extension, default to 'wip.tgz')."
    echo "h     Print this Help."
    echo
 }
 
+model=""
 archive=""
 
-while getopts ":ha:" option; do
+while getopts ":hm:a:" option; do
    case $option in
       h) # display Help
          Help
          exit;;
+      m) # Enter a name
+         model=$OPTARG;;
       a) # Enter a name
          archive=$OPTARG;;
      \?) # Invalid option
@@ -43,24 +47,30 @@ if [[ -z "$STEERING_BUCKET_NAME" ]]; then
     exit
 fi
 
+if [[ -z "$model" ]]; then
+    model="pilot-wip.h5"
+    echo "Using default model filename '$tub'"
+fi
+
 if [[ -z "$archive" ]]; then
     archive="wip.tgz"
     echo "using default archive name $archive"
 fi
 
-jobname="train_$(date +"%Y%m%d%H%M")"
+jobname="salient_$(date +"%Y%m%d%H%M")"
 if [[ ! -z "$JOB_PREFIX" ]]; then
     jobname="$(JOB_PREFIX)_$(jobname)"
 fi
 
+
+outfile="$(basename $model .h5)-salient.mp4"
+
 gcloud ai-platform jobs submit training "$jobname" \
   --package-path $TRAINER_DIR/task \
-  --module-name task.train \
+  --module-name task.makemovie \
   --scale-tier BASIC_GPU \
-  --region $REGION --python-version 3.7 --runtime-version 2.9 --job-dir $JOB_DIR --stream-logs -- --bucket $STEERING_BUCKET_NAME --archive $archive
+  --region $REGION --python-version 3.7 --runtime-version 2.9 --job-dir $JOB_DIR --stream-logs -- --out ${outfile} --bucket ${STEERING_BUCKET_NAME} --archive $archive --type linear --model ${model} --salient
 
-#  --packages ~/projects/rrl_2023/donkeycar/donkeycar.tar.gz \
+src="gs://${STEERING_BUCKET_NAME}/models"
 
-model_file="model-$(basename $archive .tgz)"
-
-./download_model $model_file
+gsutil cp ${src}/movies/${outfile} .
