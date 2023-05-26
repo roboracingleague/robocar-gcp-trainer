@@ -30,7 +30,7 @@ while getopts ":hm:" option; do
 done
 
 if [[ -z "$model" ]]; then
-    model="model-wip"
+    model="pilot-wip"
     echo "using default model basename $model"
 fi
 

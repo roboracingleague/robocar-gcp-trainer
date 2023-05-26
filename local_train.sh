@@ -28,20 +28,30 @@ while getopts ":ha:" option; do
    esac
 done
 
+if [[ -z "$TRAINER_DIR" ]]; then
+    echo "Missing env variable TRAINER_DIR !"
+    exit
+fi
+
+if [[ -z "$JOB_DIR" ]]; then
+    echo "Missing env variable JOB_DIR !"
+    exit
+fi
+
+if [[ -z "$STEERING_BUCKET_NAME" ]]; then
+    echo "Missing env variable STEERING_BUCKET_NAME !"
+    exit
+fi
+
 if [[ -z "$archive" ]]; then
     archive="wip.tgz"
     echo "using default archive name $archive"
 fi
 
-# This script upload a given archive to GCS
-if [[ -z "${JOB_DIR}" ]]; then
-    echo "Missing JOB_DIR env variable"
-    exit
-fi
 dest="gs://${STEERING_BUCKET_NAME}/training/"
 
 gcloud ai-platform local train \
-  --package-path task \
+  --package-path $TRAINER_DIR/task \
   --module-name task.train \
   --job-dir $JOB_DIR -- --bucket ${STEERING_BUCKET_NAME} --archive $archive
 

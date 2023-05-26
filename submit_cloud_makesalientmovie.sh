@@ -1,10 +1,9 @@
 #!/bin/bash
 
-
 Help()
 {
    # Display Help
-   echo "Perform makemovie task locally."
+   echo "Submit makemovie task to GCP AI Platform."
    echo
    echo "Syntax: $0 [-m <model.h5>] [-a <archive name>] [-h]"
    echo "options:"
@@ -58,18 +57,20 @@ if [[ -z "$archive" ]]; then
     echo "using default archive name $archive"
 fi
 
-outfile="$(basename $model .h5).mp4"
-
-if [[ -z "${STEERING_BUCKET_NAME}" ]]; then
-    echo "Missing STEERING_BUCKET_NAME env variable"
-    exit
+jobname="salient_$(date +"%Y%m%d%H%M")"
+if [[ ! -z "$JOB_PREFIX" ]]; then
+    jobname="$(JOB_PREFIX)_$(jobname)"
 fi
 
-src="gs://${STEERING_BUCKET_NAME}/training/"
 
-gcloud ai-platform local train \
+outfile="$(basename $model .h5)-salient.mp4"
+
+gcloud ai-platform jobs submit training "$jobname" \
   --package-path $TRAINER_DIR/task \
   --module-name task.makemovie \
-  --job-dir $JOB_DIR -- --out ${outfile} --bucket ${STEERING_BUCKET_NAME} --archive $archive --type linear --model $model --salient
+  --scale-tier BASIC_GPU \
+  --region $REGION --python-version 3.7 --runtime-version 2.9 --job-dir $JOB_DIR --stream-logs -- --out ${outfile} --bucket ${STEERING_BUCKET_NAME} --archive $archive --type linear --model ${model} --salient
 
-#  --packages ~/projects/rrl_2023/donkeycar/donkeycar.tar.gz \
+src="gs://${STEERING_BUCKET_NAME}/movies"
+
+gsutil cp ${src}/${outfile} .

@@ -18,19 +18,24 @@ Beyond using gloud to train model, idea here is to rely on donkeycar source code
     - STEERING_BUCKET_NAME, for example : irn-71028-dvc-lab-robocar-pace92
     - REGION, for example : europe-west1
     - JOB_DIR, for example : gs://$STEERING_BUCKET_NAME/job
+    - JOB_PREFIX: typically your car name or team name (Optional), used to cutomize job name
+    - TRAINER_DIR, should be set with absolute path to this project, used to invoke train from donkeycar car directory (or anywhere else))
 
 # usage :
+## install
+You can install scripts in your Donkeycar 'car' directory using the install.sh script, as follow :
+```sh
+cd ~/car
+$TRAINER_DIR/install.sh
+```
+## gcloud login
+login to gcloud as follow :
+```sh
+gcloud auth login
+```
 ## scripts
 All steps of training including dataset handling can be done through provided scripts.
 All scripts have a default functionnal behavior, to get help, invoaue script with ```-h```
-
-## links some script in your 'car' directory :
-```sh
-cd ~/mycar
-ln -s <robocar-gcp-trainer direcrory>/make_tub_archive.sh .
-ln -s <robocar-gcp-trainer direcrory>/deflate_tub_archive.sh .
-ln -s <robocar-gcp-trainer direcrory>/upload_tub_archive.sh .
-```
 
 ## create dataset archive
 use the ```make_tub_archive.sh``` script, from your 'car' directory
