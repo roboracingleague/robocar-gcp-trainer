@@ -71,6 +71,6 @@ gcloud ai-platform jobs submit training "$jobname" \
   --scale-tier BASIC_GPU \
   --region $REGION --python-version 3.7 --runtime-version 2.9 --job-dir $JOB_DIR --stream-logs -- --out ${outfile} --bucket ${STEERING_BUCKET_NAME} --archive $archive --type linear --model ${model} --salient
 
-src="gs://${STEERING_BUCKET_NAME}/models"
+src="gs://${STEERING_BUCKET_NAME}/movies"
 
-gsutil cp ${src}/movies/${outfile} .
+gsutil cp ${src}/${outfile} .

@@ -24,7 +24,7 @@ while getopts ":ht:a:" option; do
       t) # Enter a name
          tub=$OPTARG;;
       a) # Enter a name
-         archive=${$OPTARG%.*};;
+         archive=${OPTARG%.*};;
      \?) # Invalid option
          echo "Error: Invalid option"
          Help
