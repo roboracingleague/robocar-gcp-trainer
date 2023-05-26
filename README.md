@@ -19,7 +19,7 @@ Beyond using gloud to train model, idea here is to rely on donkeycar source code
     - REGION, for example : europe-west1
     - JOB_DIR, for example : gs://$STEERING_BUCKET_NAME/job
     - JOB_PREFIX: typically your car name or team name (Optional), used to cutomize job name
-    - TRAINER_DIR, should be set with absolute path to this project, used to invoke train from donkeycar car directory (or anywhere else))
+    - TRAINER_DIR, should be set with absolute path where you cloned this project, used to invoke train from donkeycar car directory (or anywhere else))
 
 # usage :
 ## install
