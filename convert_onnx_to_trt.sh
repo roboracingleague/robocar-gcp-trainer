@@ -21,7 +21,7 @@ while getopts ":hi:" option; do
          Help
          exit;;
       i) # Enter a name
-         finelame=$OPTARG;;
+         filename=$OPTARG;;
      \?) # Invalid option
          echo "Error: Invalid option"
          Help
