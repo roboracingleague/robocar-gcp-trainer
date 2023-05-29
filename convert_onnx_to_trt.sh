@@ -39,6 +39,6 @@ if [[ -z "$filename" ]]; then
     exit
 fi
 
-output = "${filename%.onnx}.trt"
+output="${filename%.onnx}.trt"
 echo "Convert $filename to $output"
 python $DONKEYCAR_DIR/donkeycar/tools/tensorrt/build_save_trt_engine.py --onnx $filename --savedtrt $output
