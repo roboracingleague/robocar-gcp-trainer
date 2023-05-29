@@ -48,18 +48,18 @@ if [[ -z "$archive" ]]; then
     echo "using default archive name $archive"
 fi
 
-jobname="train_$(date +"%Y%m%d%H%M")"
+jobname="train_scene_$(date +"%Y%m%d%H%M")"
 if [[ ! -z "$JOB_PREFIX" ]]; then
     jobname="${JOB_PREFIX}_${jobname}"
 fi
 
-echo "Submitting task.train withs params : --bucket $STEERING_BUCKET_NAME --archive $archive"
+echo "Submitting task.train withs params : --bucket $STEERING_BUCKET_NAME --archive $archive --model scene_detector"
 
 gcloud ai-platform jobs submit training "$jobname" \
   --package-path $TRAINER_DIR/task \
   --module-name task.train \
   --scale-tier BASIC_GPU \
-  --region $REGION --python-version 3.7 --runtime-version 2.9 --job-dir $JOB_DIR --stream-logs -- --bucket $STEERING_BUCKET_NAME --archive $archive
+  --region $REGION --python-version 3.7 --runtime-version 2.9 --job-dir $JOB_DIR --stream-logs -- --bucket $STEERING_BUCKET_NAME --archive $archive --model scene_detector
 
 #  --packages ~/projects/rrl_2023/donkeycar/donkeycar.tar.gz \
 

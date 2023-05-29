@@ -3,7 +3,7 @@
 Help()
 {
    # Display Help
-   echo "Submit training task to GCP AI Platform."
+   echo "Perform training task locally."
    echo
    echo "Syntax: $0 [-a <archive name>] [-h]"
    echo "options:"
@@ -48,21 +48,11 @@ if [[ -z "$archive" ]]; then
     echo "using default archive name $archive"
 fi
 
-jobname="train_$(date +"%Y%m%d%H%M")"
-if [[ ! -z "$JOB_PREFIX" ]]; then
-    jobname="${JOB_PREFIX}_${jobname}"
-fi
+dest="gs://${STEERING_BUCKET_NAME}/training/"
 
-echo "Submitting task.train withs params : --bucket $STEERING_BUCKET_NAME --archive $archive"
-
-gcloud ai-platform jobs submit training "$jobname" \
+gcloud ai-platform local train \
   --package-path $TRAINER_DIR/task \
   --module-name task.train \
-  --scale-tier BASIC_GPU \
-  --region $REGION --python-version 3.7 --runtime-version 2.9 --job-dir $JOB_DIR --stream-logs -- --bucket $STEERING_BUCKET_NAME --archive $archive
+  --job-dir $JOB_DIR -- --bucket ${STEERING_BUCKET_NAME} --archive $archive --model scene_detector
 
 #  --packages ~/projects/rrl_2023/donkeycar/donkeycar.tar.gz \
-
-model_file="model-$(basename $archive .tgz)"
-
-./download_model.sh $model_file

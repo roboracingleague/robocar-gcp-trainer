@@ -54,6 +54,11 @@ def get_args():
         required=True,
         help='bucket name to use')
     parser.add_argument(
+        '--model',
+        type=str,
+        required=False,
+        help='model to train')
+    parser.add_argument(
         '--verbosity',
         choices=['DEBUG', 'ERROR', 'FATAL', 'INFO', 'WARN'],
         default='INFO')
@@ -80,7 +85,13 @@ class DonkeyTrainer:
         modelfilepath=os.path.join(self.tmpdir, self.cfg.MODELS_PATH)
         os.makedirs(modelfilepath, exist_ok=True)
 
-        history = train(self.cfg, tub_paths=self.tub_path,
+        if args.model:
+            history = train(self.cfg, tub_paths=self.tub_path,
+                        model_type=args.model,
+                        transfer=None,
+                        comment="")
+        else:
+            history = train(self.cfg, tub_paths=self.tub_path,
                         model_type=self.cfg.DEFAULT_MODEL_TYPE,
                         transfer=None,
                         comment="")

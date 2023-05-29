@@ -3,7 +3,7 @@
 Help()
 {
    # Display Help
-   echo "Submit makemovie task to GCP AI Platform."
+   echo "Submit makeusermovie task to GCP AI Platform."
    echo
    echo "Syntax: $0 [-m <model.h5>] [-a <archive name>] [-h]"
    echo "options:"
@@ -59,16 +59,17 @@ fi
 
 jobname="movie_$(date +"%Y%m%d%H%M")"
 if [[ ! -z "$JOB_PREFIX" ]]; then
-    jobname="$(JOB_PREFIX)_$(jobname)"
+    jobname="${JOB_PREFIX}_${jobname}"
 fi
 
+echo "Submitting task.makemovie withs params : --out ${outfile} --bucket ${STEERING_BUCKET_NAME} --archive $archive --type linear --draw-user-input True"
 
 outfile="$(basename $model .h5).mp4"
 gcloud ai-platform jobs submit training "$jobname" \
   --package-path $TRAINER_DIR/task \
   --module-name task.makemovie \
   --scale-tier BASIC_GPU \
-  --region $REGION --python-version 3.7 --runtime-version 2.9 --job-dir $JOB_DIR --stream-logs -- --out ${outfile} --bucket ${STEERING_BUCKET_NAME} --archive $archive --type linear --model ${model} --draw-user-input False
+  --region $REGION --python-version 3.7 --runtime-version 2.9 --job-dir $JOB_DIR --stream-logs -- --out ${outfile} --bucket ${STEERING_BUCKET_NAME} --archive $archive --type linear --draw-user-input True
 
 src="gs://${STEERING_BUCKET_NAME}/movies"
 

@@ -3,7 +3,7 @@
 Help()
 {
    # Display Help
-   echo "Submit makemovie task to GCP AI Platform."
+   echo "Submit makepilotmovie task to GCP AI Platform."
    echo
    echo "Syntax: $0 [-m <model.h5>] [-a <archive name>] [-h]"
    echo "options:"
@@ -59,11 +59,12 @@ fi
 
 jobname="salient_$(date +"%Y%m%d%H%M")"
 if [[ ! -z "$JOB_PREFIX" ]]; then
-    jobname="$(JOB_PREFIX)_$(jobname)"
+    jobname="${JOB_PREFIX}_${jobname}"
 fi
 
-
 outfile="$(basename $model .h5)-salient.mp4"
+
+echo "Submitting task.makemovie withs params : --out ${outfile} --bucket ${STEERING_BUCKET_NAME} --archive $archive--type linear --model ${model} --salient"
 
 gcloud ai-platform jobs submit training "$jobname" \
   --package-path $TRAINER_DIR/task \

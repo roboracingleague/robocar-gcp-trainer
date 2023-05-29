@@ -63,6 +63,7 @@ fi
 
 echo "Archiving ${tub} to $archive.tgz"
 tar -chf $archive.tar -C ./${tub} . 
+echo "Adding ./config.py and ./myconfig.py"
 touch myconfig.py config.py
 tar -uhf $archive.tar myconfig.py config.py
 gzip $archive.tar
