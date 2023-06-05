@@ -65,4 +65,4 @@ gcloud ai-platform jobs submit training "$jobname" \
 
 model_file="model-$(basename $archive .tgz)"
 
-./download_model.sh $model_file
+./download_model.sh -m $model_file
