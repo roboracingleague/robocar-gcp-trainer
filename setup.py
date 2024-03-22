@@ -5,7 +5,7 @@ REQUIRED_PACKAGES = [
         'opencv-python',
         'matplotlib',
         'kivy',
-        'protobuf==3.20.3',
+        'protobuf==3.19.6',
         'pandas',
         'pyyaml',
         'plotly',

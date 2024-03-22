@@ -1,16 +1,15 @@
 import os
-import tempfile
 import tarfile
-
+from pathlib import Path
 from google.cloud import storage
 
-DATA_DIR = tempfile.TemporaryDirectory(suffix=None, prefix='steering_training')
 
-def get_archive (bucket_name, url):
+def get_file(bucket_name, blob_name, dest_dir):
+    print(f"Downloading file {bucket_name}/{blob_name}")
 
-    print(f"Downloading storage object training/{url} from bucket {bucket_name}")
-
-    storage_client = storage.Client()
+    project_number = os.environ.get("CLOUD_ML_PROJECT_ID")
+    storage_client = storage.Client(project=project_number) if project_number is not None else storage.Client()
+    print("   Storage client created")
 
     bucket = storage_client.bucket(bucket_name)
 
@@ -18,26 +17,26 @@ def get_archive (bucket_name, url):
     # Note `Bucket.blob` differs from `Bucket.get_blob` as it doesn't retrieve
     # any content from Google Cloud Storage. As we don't need additional data,
     # using `Bucket.blob` is preferred here.
-    blob = bucket.blob(f"training/{url}")
-    local_archive=os.path.join(DATA_DIR.name,"data.tar.gz")
+    blob = bucket.blob(f"{blob_name}")
+    local_archive = os.path.join(dest_dir, "data.tar.gz")
+
+    print("   Starting download")
     blob.download_to_filename(local_archive)
 
-    print(
-        "Downloaded storage object from bucket {} to local file {}.".format(
-            bucket_name, DATA_DIR.name
-        )
-    )
+    print(f"   Downloaded storage object from bucket {bucket_name} to local directory {dest_dir}")
+    archive_dir = os.path.join(dest_dir, Path(blob_name).stem)
 
     with tarfile.open(local_archive, "r") as tf:
-        tf.extractall(path=DATA_DIR.name)
-    print("All files extracted")
+        tf.extractall(path=archive_dir)
+
+    os.remove(local_archive)
+
+    print(f"   All files extracted to {archive_dir}")
+    return archive_dir
 
 
-    return DATA_DIR.name
-
-def get_model (bucket_name, url):
-
-    print(f"Downloading storage object models/{url} from bucket {bucket_name}")
+def get_model(bucket_name, blob_name, dest_dir):
+    print(f"Downloading storage object {blob_name} from bucket {bucket_name}")
 
     storage_client = storage.Client()
 
@@ -47,32 +46,18 @@ def get_model (bucket_name, url):
     # Note `Bucket.blob` differs from `Bucket.get_blob` as it doesn't retrieve
     # any content from Google Cloud Storage. As we don't need additional data,
     # using `Bucket.blob` is preferred here.
-    blob = bucket.blob(f"models/{url}")
-    local_archive=os.path.join(DATA_DIR.name,"model.h5")
+    blob = bucket.blob(f"{blob_name}")
+    local_archive = os.path.join(dest_dir, "model.h5")
     blob.download_to_filename(local_archive)
 
-    print(
-        "Downloaded storage object from bucket {} to local file {}.".format(
-            bucket_name, DATA_DIR.name
-        )
-    )
+    print(f"   Downloaded storage object from bucket {bucket_name} to local file {dest_dir}")
 
-    return DATA_DIR.name
+    return local_archive
 
-def save_model (bucket, filepath, src_filename, dst_filename):
 
+def save_file(file_path, bucket_name, blob_name):
     storage_client = storage.Client()
-
-    bucket = storage_client.bucket(bucket)
-
-    gcs_object = bucket.blob(os.path.join('models',dst_filename))
-    gcs_object.upload_from_filename(os.path.join(filepath,src_filename))
-
-def save_movie (bucket, filepath, src_filename, dst_filename):
-
-    storage_client = storage.Client()
-
-    bucket = storage_client.bucket(bucket)
-
-    gcs_object = bucket.blob(os.path.join('movies',dst_filename))
-    gcs_object.upload_from_filename(os.path.join(filepath,src_filename))
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(blob_name)
+    blob.upload_from_filename(file_path)
+    print(f"File {file_path} exported to bucket {bucket_name} as {blob_name}")

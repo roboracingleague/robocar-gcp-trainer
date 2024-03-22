@@ -1,0 +1,8 @@
+workerPoolSpecs:
+  machineSpec:
+    machineType: n1-standard-4
+    acceleratorType: NVIDIA_TESLA_K80
+    acceleratorCount: 1
+  replicaCount: 1
+  containerSpec:
+    imageUri: europe-west1-docker.pkg.dev/irn-71028-lab-a6/robocar/robocar-gcp-trainer:latest
