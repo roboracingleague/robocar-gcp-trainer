@@ -20,6 +20,7 @@ from __future__ import print_function
 from . import util
 
 import sys
+from sys import stdout
 import argparse
 import os
 from pathlib import Path
@@ -27,6 +28,7 @@ import traceback
 import tempfile
 import datetime
 import glob
+import logging
 
 import tensorflow as tf
 
@@ -34,6 +36,20 @@ from donkeycar.parts.tub_v2 import Tub
 from donkeycar.pipeline.training import train
 from donkeycar.pipeline.database import PilotDatabase
 import donkeycar as dk
+
+def console_config(level):
+    root_logger = logging.getLogger('')
+    root_logger.setLevel(level)
+    console = logging.StreamHandler(stdout)
+    console.setFormatter(logging.Formatter('%(asctime)s %(levelname)-.1s %(filename)s %(message)s')) # , '%Y-%m-%d %H:%M:%S.%f'
+    root_logger.addHandler(console)
+
+    logger = logging.getLogger(__name__)
+    logger.setLevel(level)
+    return logger
+
+logger = console_config(logging.INFO)
+
 
 def get_args():
     """Argument parser.
@@ -86,16 +102,14 @@ class DonkeyTrainer:
     def load_config(self, bucket_name, config_name):
         path = util.get_file(bucket_name=bucket_name, blob_name=config_name, dest_dir=self.tmpdir.name)
         config_path = self.find_config([path])
-        print(f"Loading config file from {config_path}")
         self.cfg = dk.load_config(config_path=config_path)
-        print(f"   Config file loaded: {config_path}")
 
     def train_and_evaluate(self, model):
         modelfilepath = os.path.join(self.tmpdir.name, self.cfg.MODELS_PATH)
         os.makedirs(modelfilepath, exist_ok=True)
 
         tub_paths = self.find_tubs()
-        print(f"   Using tubs {tub_paths}")
+        print(f"Using tubs {tub_paths}")
 
         if model:
             history = train(self.cfg, tub_paths=tub_paths,
@@ -119,12 +133,12 @@ class DonkeyTrainer:
         return [a for st in archives for a in st.split(',')]
     
     def find_tubs(self):
-        paths = glob.glob(self.tmpdir.name + '/**/manifest.json', recursive=True)
+        paths = [str(x) for x in Path(self.tmpdir.name).rglob('manifest.json')]
         return ','.join([str(Path(p).absolute().parent) for p in paths])
     
     def find_config(self, paths):
         for path in paths:
-            configs = glob.glob(os.path.join(path, '/**/config.py'), recursive=True)
+            configs = [str(x) for x in Path(path).rglob('config.py')]
             if len(configs) > 0:
                 return configs[0]
         raise RuntimeError('No config file found')
@@ -135,11 +149,9 @@ if __name__ == '__main__':
         print("Starting training job")
         args = get_args()
         
-        project_number = os.environ.get("CLOUD_ML_PROJECT_ID")
-        print(f"GCP project : {str(project_number)}")
-
-        gcreds = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
-        print(f"GOOGLE_APPLICATION_CREDENTIALS : {str(gcreds)}")
+        print("GOOGLE_CLOUD_PROJECT : {}".format(str(os.environ.get("GOOGLE_CLOUD_PROJECT"))))
+        print("CLOUD_ML_PROJECT_ID : {}".format(str(os.environ.get("CLOUD_ML_PROJECT_ID"))))
+        print("GOOGLE_APPLICATION_CREDENTIALS : {}".format(str(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))))
 
         tf.compat.v1.logging.set_verbosity(args.verbosity)
         print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
