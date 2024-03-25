@@ -1,14 +1,14 @@
 # Specifies base image and tag
+# https://cloud.google.com/vertex-ai/docs/training/pre-built-containers?hl=fr
 # python 3.7 fwk 2.9
-FROM europe-docker.pkg.dev/vertex-ai/training/tf-cpu.2-9:latest
+# FROM europe-docker.pkg.dev/vertex-ai/training/tf-cpu.2-9:latest
+FROM europe-docker.pkg.dev/vertex-ai/training/tf-gpu.2-9:latest
+# FROM europe-docker.pkg.dev/vertex-ai/training/tf-gpu.2-11:latest
+
 WORKDIR /root
 
-# Installs additional packages
-#RUN pip install 'donkeycar @ git+https://github.com/roboracingleague/donkeycar.git@main#egg=donkeycar'
-# RUN pip install 'steering-trainer @ git+https://github.com/roboracingleague/robocar-gcp-trainer.git@master#egg=steering-trainer'
-
+# Create a distinct layer with deps for faster dev cycle
 COPY ./setup.py /root/setup.py
-
 RUN python setup.py egg_info && \
     pip install -r *.egg-info/requires.txt && \
     rm -rf *.egg-info/
