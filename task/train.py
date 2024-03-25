@@ -120,14 +120,14 @@ class DonkeyTrainer:
         if transfer is not None:
             self.transfer_path = util.get_model(bucket_name, transfer, self.tmpdir.name)
 
-    def train_and_evaluate(self, model=None, model_type=None):
+    def train_and_evaluate(self, model_type=None):
         modelfilepath = os.path.join(self.tmpdir.name, self.cfg.MODELS_PATH)
         os.makedirs(modelfilepath, exist_ok=True)
 
         tub_paths = ','.join(self.datasets)
         logger.info(f"Using tubs {tub_paths}")
 
-        history = train(self.cfg, tub_paths=tub_paths, model=model, model_type=model_type, transfer=self.transfer_path)
+        history = train(self.cfg, tub_paths=tub_paths, model=None, model_type=model_type, transfer=self.transfer_path)
 
     def save_model(self, ext, bucket_name, blob_name):
         database = PilotDatabase(self.cfg)
@@ -172,7 +172,7 @@ if __name__ == '__main__':
         logger.info(f"TF FLite creation : {trainer.cfg.CREATE_TF_LITE}")
         logger.info(f"ONNX creation : {trainer.cfg.CREATE_ONNX_MODEL}")
 
-        trainer.train_and_evaluate(args.model, args.type)
+        trainer.train_and_evaluate(args.type)
 
         logger.info(f"Exporting h5 model")
         default_blob_name = os.path.join('models', 'pilot-{}'.format(datetime.now().strftime('%Y%m%d-%H%M%S')))
