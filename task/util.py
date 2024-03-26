@@ -6,69 +6,47 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def get_archive(bucket_name, blob_name, dest_dir):
-    logger.info(f"Downloading file {bucket_name}/{blob_name}")
-
+def download_file(bucket_name, blob_name, dest_path):
     project_number = os.environ.get("CLOUD_ML_PROJECT_ID")
     storage_client = storage.Client(project=project_number) if project_number is not None else storage.Client()
     logger.debug("Storage client created")
-
     bucket = storage_client.bucket(bucket_name)
-
     # Construct a client side representation of a blob.
     # Note `Bucket.blob` differs from `Bucket.get_blob` as it doesn't retrieve
     # any content from Google Cloud Storage. As we don't need additional data,
     # using `Bucket.blob` is preferred here.
     blob = bucket.blob(blob_name)
-    local_archive = os.path.join(dest_dir, "data.tar.gz")
+    blob.download_to_filename(dest_path)
+    logger.debug(f"Archive downloaded to {dest_path}")
 
-    logger.debug("Starting download")
-    blob.download_to_filename(local_archive)
+def upload_file(file_path, bucket_name, blob_name):
+    project_number = os.environ.get("CLOUD_ML_PROJECT_ID")
+    storage_client = storage.Client(project=project_number) if project_number is not None else storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(blob_name)
+    blob.upload_from_filename(file_path)
 
-    logger.debug(f"Downloaded storage object from bucket {bucket_name} to local directory {dest_dir}")
+def tar(file_path, archive_path):
+    logger.debug(f"Tar {file_path} to {archive_path}")
+    with tarfile.open(archive_path, 'w:gz') as archive:
+        arcname = os.path.split(file_path)[1]
+        archive.add(file_path, arcname=arcname)
 
-    with tarfile.open(local_archive, "r") as tf:
-        tf.extractall(path=dest_dir)
+def untar(archive_path, dest_path):
+    logger.debug(f"Untar {archive_path} to {dest_path}")
+    with tarfile.open(archive_path, "r") as tf:
+        tf.extractall(path=dest_path)
+    os.remove(archive_path)
 
+def get_archive(bucket_name, blob_name, dest_dir):
+    logger.info(f"Downloading {bucket_name}/{blob_name}")
+    local_archive = os.path.join(dest_dir, 'archive.tgz')
+    download_file(bucket_name, blob_name, local_archive)
+    untar(local_archive, dest_dir)
+
+def save_to_archive(path, bucket_name, blob_name):
+    logger.info(f"Uploading {path} to {bucket_name}/{blob_name}")
+    local_archive = 'archive.tgz'
+    tar(path, local_archive)
+    upload_file(local_archive, bucket_name, blob_name)
     os.remove(local_archive)
-
-    archive_dir = os.path.join(dest_dir, Path(blob_name).stem)
-    logger.info(f"Files extracted to {archive_dir}")
-    return archive_dir
-
-
-def get_model(bucket_name, blob_name, dest_dir):
-    logger.info(f"Downloading storage object {blob_name} from bucket {bucket_name}")
-
-    project_number = os.environ.get("CLOUD_ML_PROJECT_ID")
-    storage_client = storage.Client(project=project_number) if project_number is not None else storage.Client()
-
-    bucket = storage_client.bucket(bucket_name)
-
-    # Construct a client side representation of a blob.
-    # Note `Bucket.blob` differs from `Bucket.get_blob` as it doesn't retrieve
-    # any content from Google Cloud Storage. As we don't need additional data,
-    # using `Bucket.blob` is preferred here.
-    blob = bucket.blob(blob_name)
-    local_archive = os.path.join(dest_dir, "model")
-    blob.download_to_filename(local_archive)
-
-    logger.info(f"Storage object {blob_name} from bucket {bucket_name} downloaded to local file {local_archive}")
-    return local_archive
-
-
-def save_file(file_path, bucket_name, blob_name):
-    logger.info(f"Exporting file {file_path} to bucket {bucket_name} as {blob_name}")
-
-    if not os.path.isfile(file_path):
-        raise FileNotFoundError(file_path)
-
-    project_number = os.environ.get("CLOUD_ML_PROJECT_ID")
-    storage_client = storage.Client(project=project_number) if project_number is not None else storage.Client()
-
-    bucket = storage_client.bucket(bucket_name)
-    blob = bucket.blob(blob_name)
-
-    blob.upload_from_filename(file_path, if_generation_match=0)
-
-    logger.info(f"File {file_path} exported to bucket {bucket_name} as {blob_name}")

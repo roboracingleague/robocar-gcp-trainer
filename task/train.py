@@ -45,7 +45,6 @@ from shutil import copyfile
 
 import donkeycar as dk
 from donkeycar.pipeline.training import train
-from donkeycar.pipeline.database import PilotDatabase
 
 from . import util
 
@@ -62,22 +61,22 @@ def get_args():
     #     required=True,
     #     help='local or GCS location for writing checkpoints and exporting models')
     parser.add_argument(
-        '--archives',
-        nargs='+',
-        required=True,
-        help='training datasets tgz')
-    parser.add_argument(
-        '--config',
-        required=False,
-        help='config tgz, use cfg_complete.py by default')
-    parser.add_argument(
         '--bucket',
         required=True,
         help='GCS bucket name to look for archives and config, and to export models')
     parser.add_argument(
-        '--model',
+        '--archives',
+        nargs='+',
+        required=True,
+        help='training datasets tgz, relative to bucket, separated by :')
+    parser.add_argument(
+        '--config',
         required=False,
-        help='output model name')
+        help='config tgz, relative to bucket, use cfg_complete.py by default')
+    parser.add_argument(
+        '--model',
+        required=True,
+        help='output model name, relative to bucket, without .tgz extension')
     parser.add_argument(
         '--type',
         required=True,
@@ -85,7 +84,7 @@ def get_args():
     parser.add_argument(
         '--transfer',
         required=False,
-        help='transfer model')
+        help='transfer model, relative to bucket, with .tgz extension')
     parser.add_argument(
         '--verbosity',
         choices=['DEBUG', 'ERROR', 'FATAL', 'INFO', 'WARN'],
@@ -100,70 +99,98 @@ class DonkeyTrainer:
     def __init__(self) -> None:
         self.tmpdir = tempfile.TemporaryDirectory(suffix=None)
         self.datasets = []
+        self.config_path = None
         self.transfer_path = None
+        self.model_path = None
+        self.cfg = None
 
     def get_archives(self, bucket_name, archives):
-        for archive in self.split_archives_names(archives):
-            dataset = util.get_archive(bucket_name=bucket_name, blob_name=archive, dest_dir=self.tmpdir.name)
-            self.datasets.append(dataset)
+        for archive in archives:
+            util.get_archive(bucket_name=bucket_name, blob_name=archive, dest_dir=self.tmpdir.name)
 
-    def load_config(self, bucket_name, config_name):
-        if config_name is not None:
-            path = util.get_archive(bucket_name=bucket_name, blob_name=config_name, dest_dir=self.tmpdir.name)
-            config_path = self.find_config([path])
+            archive_name = Path(archive).stem
+            archive_dir = os.path.join(self.tmpdir.name, archive_name)
+            if not os.path.isdir(archive_dir):
+                raise FileNotFoundError(f"Expected directory {archive_name} was not found in archive {archive}")
+            
+            logger.info(f"Archive extracted to {archive_dir}")
+            self.datasets.append(archive_dir)
+
+    def load_config(self, bucket_name, config):
+        config_path = os.path.join(self.tmpdir.name, 'config.py')
+        if config is not None:
+            util.get_archive(bucket_name=bucket_name, blob_name=config, dest_dir=self.tmpdir.name)
         else:
-            config_path = os.path.join(self.tmpdir.name, 'config.py')
             copyfile(str(files('donkeycar.templates').joinpath('cfg_complete.py')), config_path)
         self.cfg = dk.load_config(config_path=config_path)
+        self.config_path = config_path
     
     def get_transfer(self, bucket_name, transfer):
         if transfer is not None:
-            self.transfer_path = util.get_model(bucket_name, transfer, self.tmpdir.name)
+            util.get_archive(bucket_name, transfer, self.tmpdir.name)
+            self.transfer_path = os.path.join(self.tmpdir.name, Path(transfer).stem)
+            logger.info(f"Transfer model downloaded to {self.transfer_path}")
 
-    def train_and_evaluate(self, model_type=None):
-        modelfilepath = os.path.join(self.tmpdir.name, self.cfg.MODELS_PATH)
-        os.makedirs(modelfilepath, exist_ok=True)
+    def train_and_evaluate(self, model, model_type=None):
+        models_dir = os.path.join(os.path.split(self.config_path)[0], self.cfg.MODELS_PATH)
+        self.model_path = os.path.join(models_dir, Path(model).name)
+        os.makedirs(models_dir, exist_ok=True)
 
         tub_paths = ','.join(self.datasets)
         logger.info(f"Using tubs {tub_paths}")
 
-        history = train(self.cfg, tub_paths=tub_paths, model=None, model_type=model_type, transfer=self.transfer_path)
+        history = train(self.cfg, tub_paths=tub_paths, model=self.model_path, model_type=model_type, transfer=self.transfer_path)
 
-    def save_model(self, ext, bucket_name, blob_name):
-        database = PilotDatabase(self.cfg)
-        model_name = f"{database.entries[0]['Name']}.{ext}"
-        model_path = os.path.join(self.tmpdir.name, self.cfg.MODELS_PATH, model_name)
-        util.save_file(model_path, bucket_name, f"{blob_name}.{ext}")
+    def save_models(self, bucket_name, model):
+        util.save_to_archive(self.model_path, bucket_name, f"{model}.tgz")
 
-    def split_archives_names(self, archives):
-        return [a for st in archives for a in st.split(',')]
+        model_basepath = os.path.splitext(self.model_path)[0]
+        blob_basepath, model_ext = os.path.splitext(model)
+
+        if self.cfg.CREATE_TF_LITE and model_ext != '.tflite':
+            util.save_to_archive(f"{model_basepath}.tflite", bucket_name, f"{blob_basepath}.tflite.tgz")
+        
+        if self.cfg.CREATE_TENSOR_RT and model_ext != '.trt':
+            logger.info(f"Uploading {model_basepath}.trt to {bucket_name}/{blob_basepath}.trt.tgz")
+            util.save_to_archive(f"{model_basepath}.trt", bucket_name, f"{blob_basepath}.trt.tgz")
+
+        if self.cfg.CREATE_ONNX_MODEL and model_ext != '.onnx':
+            logger.info(f"Uploading {model_basepath}.onnx to {bucket_name}/{blob_basepath}.onnx.tgz")
+            util.save_to_archive(f"{model_basepath}.onnx", bucket_name, f"{blob_basepath}.onnx.tgz")
     
-    def find_tubs(self):
-        paths = [str(x) for x in Path(self.tmpdir.name).rglob('manifest.json')]
-        return ','.join([str(Path(p).absolute().parent) for p in paths])
-    
-    def find_config(self, paths):
-        for path in paths:
-            configs = [str(x) for x in Path(path).rglob('config.py')]
-            if len(configs) > 0:
-                return configs[0]
-        raise RuntimeError('No config file found')
+    def cleanup(self):
+        self.tmpdir.cleanup()
+        self.tmpdir = None
 
+def split_archives_names(archives):
+    return [a for st in archives for a in st.split(':')]
 
-if __name__ == '__main__':
+def log_args(args, archives):
+    logger.info("GOOGLE_CLOUD_PROJECT : {}".format(str(os.environ.get("GOOGLE_CLOUD_PROJECT"))))
+    logger.info("CLOUD_ML_PROJECT_ID : {}".format(str(os.environ.get("CLOUD_ML_PROJECT_ID"))))
+    logger.info("GOOGLE_APPLICATION_CREDENTIALS : {}".format(str(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))))
+    logger.info("archives : {}".format(str(args.archives)))
+    logger.info("config : {}".format(str(args.config)))
+    logger.info("bucket : {}".format(str(args.bucket)))
+    logger.info("model : {}".format(str(args.model)))
+    logger.info("type : {}".format(str(args.type)))
+    logger.info("transfer : {}".format(str(args.transfer)))
+    logger.info("verbosity : {}".format(str(args.verbosity)))
+    logger.info("parsed archives names : {}".format(str(archives)))
+
+def main():
     try:
         logger.info("Starting training job")
         args = get_args()
-        
-        logger.info("GOOGLE_CLOUD_PROJECT : {}".format(str(os.environ.get("GOOGLE_CLOUD_PROJECT"))))
-        logger.info("CLOUD_ML_PROJECT_ID : {}".format(str(os.environ.get("CLOUD_ML_PROJECT_ID"))))
-        logger.info("GOOGLE_APPLICATION_CREDENTIALS : {}".format(str(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))))
+
+        archives = split_archives_names(args.archives)
+        log_args(args, archives)
 
         tf.compat.v1.logging.set_verbosity(args.verbosity)
         logger.info("Num GPUs Available: {}".format(str(len(tf.config.list_physical_devices('GPU')))))
         
         trainer = DonkeyTrainer()
-        trainer.get_archives(args.bucket, args.archives)
+        trainer.get_archives(args.bucket, archives)
 
         trainer.load_config(args.bucket, args.config)
 
@@ -172,22 +199,17 @@ if __name__ == '__main__':
         logger.info(f"TF FLite creation : {trainer.cfg.CREATE_TF_LITE}")
         logger.info(f"ONNX creation : {trainer.cfg.CREATE_ONNX_MODEL}")
 
-        trainer.train_and_evaluate(args.type)
+        trainer.train_and_evaluate(args.model, args.type)
 
-        logger.info(f"Exporting h5 model")
-        default_blob_name = os.path.join('models', 'pilot-{}'.format(datetime.now().strftime('%Y%m%d-%H%M%S')))
-        trainer.save_model('h5', args.bucket, args.model if args.model else default_blob_name)
+        trainer.save_models(args.bucket, args.model)
 
-        if trainer.cfg.CREATE_TF_LITE:
-            logger.info(f"Exporting tflite model")
-            trainer.save_model('tflite', args.bucket, args.model if args.model else default_blob_name)
-        
-        if trainer.cfg.CREATE_ONNX_MODEL:
-            logger.info(f"Exporting onnx model")
-            trainer.save_model ('onnx', args.bucket, args.model if args.model else default_blob_name)
+        trainer.cleanup()
         
         logger.info('Training job complete')
     except Exception as exc:
         logger.info(repr(exc))
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback)
+
+if __name__ == '__main__':
+    main()
