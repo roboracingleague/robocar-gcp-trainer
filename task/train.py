@@ -118,7 +118,7 @@ class DonkeyTrainer:
 
     def load_config(self, bucket_name, config):
         config_path = os.path.join(self.tmpdir.name, 'config.py')
-        if config is not None:
+        if config:
             util.get_archive(bucket_name=bucket_name, blob_name=config, dest_dir=self.tmpdir.name)
         else:
             copyfile(str(files('donkeycar.templates').joinpath('cfg_complete.py')), config_path)
@@ -126,7 +126,7 @@ class DonkeyTrainer:
         self.config_path = config_path
     
     def get_transfer(self, bucket_name, transfer):
-        if transfer is not None:
+        if transfer:
             util.get_archive(bucket_name, transfer, self.tmpdir.name)
             self.transfer_path = os.path.join(self.tmpdir.name, Path(transfer).stem)
             logger.info(f"Transfer model downloaded to {self.transfer_path}")
